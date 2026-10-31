@@ -1,0 +1,3018 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes"
+    >
+
+    <meta
+        name="description"
+        content="FillPac AI Production Vision Dashboard"
+    >
+
+    <title>
+        FillPac Vision Intelligence Platform
+    </title>
+<style>
+/* Zoom and responsive support */
+html {
+    /* Enable browser zoom without breaking layout */
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    /* Prevent text selection issues during interactions */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+/* Ensure input/textarea are selectable */
+input, textarea, button {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+}
+
+/* Responsive images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Ensure no horizontal scroll on zoom */
+* {
+    box-sizing: border-box;
+}
+
+/* NOTE: the dev-only breakpoint indicator (body::after showing
+   "mobile" / "small" / "tablet" / "large" / "xl" / "2xl" / "led"
+   in the bottom-right corner) has been removed - it was a
+   leftover debugging aid, not part of the dashboard UI, and was
+   showing up as stray text over the page for real users. */
+</style>
+
+
+    <link rel="icon" type="image/png" href="assets/beumer-icon.png">
+
+<link rel="stylesheet" href="css/dashboard.css?v=20261028-settings-new-config">
+
+<script src="assets/chartjs/chart.umd.js"></script>
+
+<script src="assets/socketio/socket.io.min.js"></script>
+
+<!-- ==================================================
+     PDF REPORT GENERATION (jsPDF + AutoTable)
+     Reports are generated entirely client-side (see
+     handleGenerateReport() / downloadReportPdf() in
+     dashboard.js) from data already loaded into the
+     dashboard, so report generation keeps working even if
+     a backend /reports/generate endpoint is missing or
+     fails. This does require network access to the CDN
+     below the first time the Reports page is used; if the
+     PDF libraries fail to load, dashboard.js shows a
+     notification instead of crashing.
+     ================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- ==================================================
+         FONT AWESOME
+         ================================================== -->
+
+    <!-- <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    > -->
+
+
+    <!-- ==================================================
+         DASHBOARD CSS
+         ================================================== -->
+
+    <!-- <link
+        rel="stylesheet"
+        href="css/dashboard.css"
+    > -->
+
+    <!-- ==================================================
+         LOGIN / AUTH CSS
+         ================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard_auth.css"
+    >
+
+
+    <!-- ==================================================
+         CHART.JS
+         ================================================== -->
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+
+
+    <!-- ==================================================
+         SOCKET.IO
+         ================================================== -->
+
+    <!-- <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script> -->
+
+</head>
+
+
+<body>
+
+
+<!-- ==========================================================
+     INLINE ICON SPRITE
+     Self-contained SVG icons (no external font/CDN needed) so
+     the UI renders correctly fully offline.
+     ========================================================== -->
+<svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<symbol id="icon-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+<symbol id="icon-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></symbol>
+<symbol id="icon-industry" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V10l5 3.5V10l5 3.5V10l5 3.5V21"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="18" y1="7" x2="18" y2="3"/><line x1="16" y1="4" x2="20" y2="4"/></symbol>
+<symbol id="icon-chart-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+<symbol id="icon-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-road-barrier" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="20" height="6" rx="1"/><line x1="5" y1="9" x2="8" y2="15"/><line x1="10" y1="9" x2="13" y2="15"/><line x1="15" y1="9" x2="18" y2="15"/><line x1="4" y1="15" x2="4" y2="20"/><line x1="20" y1="15" x2="20" y2="20"/></symbol>
+<symbol id="icon-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></symbol>
+<symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></symbol>
+<symbol id="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 3 3 3 3 8"/><polyline points="16 3 21 3 21 8"/><polyline points="3 16 3 21 8 21"/><polyline points="21 16 21 21 16 21"/></symbol>
+<symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></symbol>
+<symbol id="icon-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M4.5 15a8 8 0 0 0 14 3.5"/><path d="M19.5 9a8 8 0 0 0-14-3.5"/></symbol>
+<symbol id="icon-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/></symbol>
+<symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></symbol>
+<symbol id="icon-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17.5" r="0.9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-percent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></symbol>
+<symbol id="icon-video-slash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
+<symbol id="icon-boxes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l5-3 5 3-5 3-5-3z"/><path d="M3 15v4l5 3 5-3v-4"/><path d="M11 8l5-3 5 3-5 3-5-3z"/><path d="M11 8v4l5 3 5-3V8"/></symbol>
+<symbol id="icon-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 3 18 3 18 9"/><rect x="4" y="9" width="16" height="8" rx="1"/><rect x="7" y="14" width="10" height="6"/></symbol>
+<symbol id="icon-ban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/></symbol>
+<symbol id="icon-gauge-high" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 1 1 16 0"/><line x1="12" y1="15" x2="16" y2="9"/><circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-bar-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="13" width="3" height="7"/><rect x="11" y="9" width="3" height="11"/><rect x="16" y="5" width="3" height="15"/></symbol>
+<symbol id="icon-rotate-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 9 9 9"/></symbol>
+<symbol id="icon-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 4 20 4 14 12 14 19 10 21 10 12 4 4"/></symbol>
+<symbol id="icon-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 1 1 16 0"/><line x1="12" y1="15" x2="14" y2="11"/><circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-user-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></symbol>
+<symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></symbol>
+</defs>
+</svg>
+
+
+
+<div class="app-container">
+
+
+    <!-- ==================================================
+         TOP HEADER
+         ================================================== -->
+
+    <header class="top-header">
+
+
+        <!-- LEFT -->
+
+        <div class="header-left">
+
+            <div class="company-logo">
+
+                <a
+                    href="#"
+                    class="company-logo-link"
+                >
+
+                    <img
+                        src="assets/beumer-logo-color.png"
+                        alt="BEUMER Group"
+                        class="company-logo-img"
+                        onerror="this.style.display='none'"
+                    >
+
+                </a>
+
+            </div>
+
+
+            <div class="application-title">
+
+                <h1>
+                    FillPac Vision Intelligence Platform
+                </h1>
+
+                <span>
+                    Production Vision System
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- CENTER -->
+
+        <div class="header-center">
+
+            <div class="customer-logo-placeholder">
+
+                CUSTOMER
+                <br>
+                LOGO
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT -->
+
+        <div class="header-right">
+
+
+            <div
+                id="systemStatus"
+                class="system-status offline"
+            >
+
+                <span id="systemStatusDot" class="status-dot"></span>
+
+                <span id="systemStatusText">
+                    CONNECTING
+                </span>
+
+            </div>
+
+
+            <div class="header-uptime">
+
+                <span>
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-clock" xlink:href="#icon-clock"></use></svg>
+                    System Uptime
+                </span>
+
+                <strong id="systemUptime">
+                    --:--:--
+                </strong>
+
+            </div>
+
+
+            <div class="datetime-container">
+
+                <strong id="currentTime">
+                    --:--:--
+                </strong>
+
+                <span id="currentDate">
+                    --
+                </span>
+
+            </div>
+
+
+            <!-- ==========================================
+                 NOTIFICATIONS
+                 ========================================== -->
+
+            <div class="notification-icon-container">
+
+                <button
+                    id="notificationBell"
+                    class="notification-button"
+                    type="button"
+                    aria-label="Notifications"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-warning" xlink:href="#icon-warning"></use></svg>
+
+                    <span id="notificationBadge" class="notification-badge" style="display:none;">0</span>
+
+                </button>
+
+
+                <div
+                    id="notificationPanel"
+                    class="notification-panel"
+                    style="display:none;"
+                >
+
+                    <div class="notification-panel-header">
+
+                        <h3>Notifications</h3>
+
+                        <button id="closeNotificationPanel" class="notification-close-btn" type="button" aria-label="Close">&times;</button>
+
+                    </div>
+
+
+                    <!-- ==========================================
+                         LIVE PACKER STATUS CHIP
+                         Always reflects the current live state of
+                         whichever packer is selected on the System
+                         Status page, so opening the panel shows the
+                         current state at a glance rather than only
+                         a historical alert log.
+                         ========================================== -->
+
+                    <div class="notification-live-status">
+
+                        <span id="notificationLiveStatusDot" class="live-status-dot unknown"></span>
+
+                        <span id="notificationLiveStatusText">
+                            Packer 1: --
+                        </span>
+
+                    </div>
+
+
+                    <!-- ==========================================
+                         PACKER FILTER (ALL / PACKER 1)
+                         Only one packer is currently installed, so
+                         this renders as a two-state sliding toggle
+                         instead of a row of buttons.
+                         ========================================== -->
+
+                    <div id="notificationPackerFilter" class="notification-packer-filter">
+
+                        <button class="time-range-button active" data-packer="all" type="button">ALL</button>
+                        <button class="time-range-button" data-packer="1" type="button">PACKER 1</button>
+
+                    </div>
+
+
+                    <div class="notification-list-wrapper">
+
+                        <div id="notificationList" class="notification-list">
+
+                            <p class="no-notifications">No notifications</p>
+
+                        </div>
+
+                        <!-- ==========================================
+                             SCROLL HINT
+                             Shown/hidden by dashboard.js whenever the
+                             list has more content below than currently
+                             visible, so it's unmistakable that this
+                             area scrolls (rather than just clipping).
+                             ========================================== -->
+
+                        <div id="notificationScrollHint" class="notification-scroll-hint" style="display:none;">
+                            <span>More notifications</span>
+                            <svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+
+                    </div>
+
+
+                    <div class="notification-panel-footer">
+
+                        <button id="markAllAsRead" class="mark-read-btn" type="button">
+                            Mark all as read
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==========================================
+                 REMOVED: duplicate bare avatar icon.
+                 The real user avatar + name + role + logout
+                 button is injected here by
+                 dashboard_auth_themed.js (see .user-menu in
+                 dashboard_auth.css). Keeping both showed two
+                 circular avatars in the header.
+                 ========================================== -->
+
+
+        </div>
+
+
+    </header>
+
+
+    <!-- ==================================================
+         BODY
+         ================================================== -->
+
+    <div class="dashboard-body">
+
+
+        <!-- ==================================================
+             SIDEBAR
+             ================================================== -->
+
+        <aside class="sidebar">
+
+
+            <nav class="sidebar-navigation">
+
+
+                <button
+                    class="sidebar-item active"
+                    data-page="dashboard"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-dashboard" xlink:href="#icon-dashboard"></use></svg>
+
+                    <span>
+                        Dashboard
+                    </span>
+
+                </button>
+
+
+                <button
+                    class="sidebar-item"
+                    data-page="system-status"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-gauge" xlink:href="#icon-gauge"></use></svg>
+
+                    <span>
+                        System Status
+                    </span>
+
+                </button>
+
+
+                <button
+                    class="sidebar-item"
+                    data-page="reports"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-bar-chart" xlink:href="#icon-bar-chart"></use></svg>
+
+                    <span>
+                        Reports
+                    </span>
+
+                </button>
+
+
+                <button
+                    class="sidebar-item"
+                    data-page="about"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-list" xlink:href="#icon-list"></use></svg>
+
+                    <span>
+                        About
+                    </span>
+
+                </button>
+
+
+                <div class="sidebar-divider"></div>
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Live Monitor" nav item (merged into Dashboard tab)
+                     ============================================================ -->
+                <!--
+                <button
+                    class="sidebar-item"
+                    data-page="live-monitor"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-video" xlink:href="#icon-video"></use></svg>
+
+                    <span>
+                        Live Monitor
+                    </span>
+
+                </button>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Production" nav item (merged into Dashboard tab)
+                     ============================================================ -->
+                <!--
+                <button
+                    class="sidebar-item"
+                    data-page="production"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-industry" xlink:href="#icon-industry"></use></svg>
+
+                    <span>
+                        Production
+                    </span>
+
+                </button>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Analytics" nav item (tab disabled)
+                     ============================================================ -->
+                <!--
+                <button
+                    class="sidebar-item"
+                    data-page="analytics"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-chart-line" xlink:href="#icon-chart-line"></use></svg>
+
+                    <span>
+                        Analytics
+                    </span>
+
+                </button>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Events" nav item (tab disabled)
+                     ============================================================ -->
+                <!--
+                <button
+                    class="sidebar-item"
+                    data-page="events"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-list" xlink:href="#icon-list"></use></svg>
+
+                    <span>
+                        Events
+                    </span>
+
+                </button>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Jam Monitoring" nav item (tab disabled)
+                     ============================================================ -->
+                <!--
+                <button
+                    class="sidebar-item"
+                    data-page="jam-monitor"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-road-barrier" xlink:href="#icon-road-barrier"></use></svg>
+
+                    <span>
+                        Jam Monitoring
+                    </span>
+
+                </button>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Cameras" nav item (tab disabled)
+                     ============================================================ -->
+                <!--
+                <button
+                    class="sidebar-item"
+                    data-page="cameras"
+                    type="button"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-camera" xlink:href="#icon-camera"></use></svg>
+
+                    <span>
+                        Cameras
+                    </span>
+
+                </button>
+                -->
+
+
+                <button
+                    id="settingsNavButton"
+                    class="sidebar-item"
+                    data-page="settings"
+                    type="button"
+                    style="display:none;"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-settings" xlink:href="#icon-settings"></use></svg>
+
+                    <span>
+                        Settings
+                    </span>
+
+                </button>
+
+
+                <button
+                    id="createUserNavButton"
+                    class="sidebar-item"
+                    data-page="create-user"
+                    type="button"
+                    style="display:none;"
+                >
+
+                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-user-plus" xlink:href="#icon-user-plus"></use></svg>
+
+                    <span>
+                        Create User
+                    </span>
+
+                </button>
+
+
+            </nav>
+
+
+            <div class="sidebar-footer">
+
+                <div>
+                    FillPac AI
+                </div>
+
+                <div class="sidebar-version">
+                    BGCNT_01_01_01
+                </div>
+
+                <div>
+                    Industrial Vision Platform
+                </div>
+
+            </div>
+
+
+        </aside>
+
+
+        <!-- ==================================================
+             MAIN CONTENT
+             ================================================== -->
+
+        <main class="main-content">
+
+
+            <!-- ==================================================
+                 GLOBAL PAGE HEADER
+                 ================================================== -->
+
+            <div class="page-header">
+
+
+                <div id="pageHeaderText">
+
+                    <h2 id="pageTitle">
+                        Production Dashboard
+                    </h2>
+
+                    <p id="pageSubtitle">
+                        Real-time FillPac AI production monitoring
+                    </p>
+
+                </div>
+
+
+                <div class="page-actions">
+
+
+                    <button
+                        id="refreshButton"
+                        class="secondary-button"
+                        type="button"
+                    >
+
+                        <svg class="icon-svg" aria-hidden="true"><use href="#icon-refresh" xlink:href="#icon-refresh"></use></svg>
+
+                        Refresh
+
+                    </button>
+
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ==================================================
+                 PAGE 1
+                 DASHBOARD
+                 ================================================== -->
+
+            <section
+                id="page-dashboard"
+                class="dashboard-page active-page"
+            >
+
+                <!-- PRODUCTION KPI -->
+
+                <div class="section-header">
+
+                    <div id="kpiRangeLabel" class="kpi-range-label">
+                        Live totals
+                    </div>
+
+
+                    <div id="kpiRangeButtons" class="time-range-buttons">
+
+                        <button class="time-range-button active" data-hours="0" type="button">LIVE</button>
+                        <button class="time-range-button" data-hours="1" type="button">1 HR</button>
+                        <button class="time-range-button" data-hours="4" type="button">4 HR</button>
+                        <button class="time-range-button" data-hours="8" type="button">8 HR</button>
+                        <button class="time-range-button" data-hours="16" type="button">16 HR</button>
+                        <button class="time-range-button" data-hours="24" type="button">24 HR</button>
+
+                    </div>
+
+                </div>
+
+                <section class="kpi-grid">
+
+
+                    <article class="kpi-card kpi-card-primary">
+
+                        <div class="kpi-icon blue">
+
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-box" xlink:href="#icon-box"></use></svg>
+
+                        </div>
+
+                        <div class="kpi-content">
+
+                            <span class="kpi-label">
+                                Total Bags
+                            </span>
+
+                            <strong
+                                id="totalBags"
+                                class="kpi-value kpi-value-large"
+                            >
+                                0
+                            </strong>
+
+                            <span class="kpi-description">
+                                Total production count
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="kpi-card">
+
+                        <div class="kpi-icon green">
+
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-check-circle" xlink:href="#icon-check-circle"></use></svg>
+
+                        </div>
+
+                        <div class="kpi-content">
+
+                            <span class="kpi-label">
+                                Printed Bags
+                            </span>
+
+                            <strong
+                                id="printedBags"
+                                class="kpi-value"
+                            >
+                                0
+                            </strong>
+
+                            <span class="kpi-description">
+                                Print detected
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="kpi-card">
+
+                        <div class="kpi-icon red">
+
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-warning" xlink:href="#icon-warning"></use></svg>
+
+                        </div>
+
+                        <div class="kpi-content">
+
+                            <span class="kpi-label">
+                                Not Printed
+                            </span>
+
+                            <strong
+                                id="missingBags"
+                                class="kpi-value"
+                            >
+                                0
+                            </strong>
+
+                            <span class="kpi-description">
+                                Missing print
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="kpi-card">
+
+                        <div class="kpi-icon purple">
+
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-percent" xlink:href="#icon-percent"></use></svg>
+
+                        </div>
+
+                        <div class="kpi-content">
+
+                            <span class="kpi-label">
+                                Print Quality
+                            </span>
+
+                            <strong
+                                id="printQuality"
+                                class="kpi-value"
+                            >
+                                0.0%
+                            </strong>
+
+                            <span class="kpi-description">
+                                Printed / classified
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="kpi-card">
+
+                        <div class="kpi-icon teal">
+
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-gauge-high" xlink:href="#icon-gauge-high"></use></svg>
+
+                        </div>
+
+                        <div class="kpi-content">
+
+                            <span class="kpi-label">
+                                Production Rate
+                            </span>
+
+                            <strong
+                                id="productionRate"
+                                class="kpi-value"
+                            >
+                                --
+                            </strong>
+
+                            <span class="kpi-description">
+                                Bags / hour
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                </section>
+
+
+                <!-- BATCH COUNTER -->
+
+                <section class="section-container batch-counter" id="batchCounter">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h3>Batch Counter</h3>
+
+                            <p>Set a count limit and watch bags counted since you started</p>
+
+                        </div>
+
+                        <span id="batchStatusBadge" class="status-badge info">NOT SET</span>
+
+                    </div>
+
+                    <div class="batch-body">
+
+                        <div class="batch-form">
+
+                            <label class="batch-field">
+                                <span>Count limit (bags)</span>
+                                <input id="batchTargetInput" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 500">
+                            </label>
+
+                            <label class="batch-field">
+                                <span>Camera</span>
+                                <select id="batchCameraSelect">
+                                    <option value="all">All cameras</option>
+                                </select>
+                            </label>
+
+                            <div class="batch-actions">
+                                <button id="batchStartButton" class="primary-button" type="button">Start</button>
+                                <button id="batchStopButton" class="secondary-button" type="button">Clear</button>
+                            </div>
+
+                            <div id="batchMessage" class="batch-message" aria-live="polite"></div>
+
+                        </div>
+
+                        <div class="batch-display">
+
+                            <div class="batch-count-row">
+                                <strong id="batchCounted" class="batch-counted">--</strong>
+                                <span class="batch-of">/ <span id="batchTarget">--</span></span>
+                            </div>
+
+                            <div class="batch-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                <div id="batchBarFill" class="batch-bar-fill"></div>
+                            </div>
+
+                            <div class="batch-stats">
+                                <div><span>Remaining</span><strong id="batchRemaining">--</strong></div>
+                                <div><span>Printed</span><strong id="batchPrinted">--</strong></div>
+                                <div><span>Not printed</span><strong id="batchMissing">--</strong></div>
+                                <div><span>Started</span><strong id="batchStarted">--</strong></div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- CAMERA OVERVIEW -->
+
+                <section class="section-container">
+
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h3>
+                                Camera Production Overview
+                            </h3>
+
+                            <p>
+                                Real-time count and print inspection
+                            </p>
+
+                        </div>
+
+
+                        <div class="live-indicator">
+
+                            <span class="live-dot"></span>
+
+                            LIVE
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="camera-grid">
+
+
+                        <!-- CAMERA 1 -->
+
+                        <article
+                            id="camera-card-1"
+                            class="camera-card offline"
+                        >
+
+                            <div class="camera-card-header">
+
+                                <div>
+
+                                    <span class="camera-number">
+                                        CAMERA 01
+                                    </span>
+
+                                    <h4>
+                                        Loading Side
+                                    </h4>
+
+                                </div>
+
+
+                                <span
+                                    id="camera1Status"
+                                    class="camera-status offline"
+                                >
+                                    OFFLINE
+                                </span>
+
+                            </div>
+
+
+                            <div class="camera-jam-summary">
+
+                                <span>
+                                    Jam Status
+                                </span>
+
+                                <strong
+                                    id="camera1JamStatus"
+                                    class="jam-status disabled"
+                                >
+                                    DISABLED
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                class="secondary-button camera-view-button"
+                                type="button"
+                                onclick="showCameraView('camera_0')"
+                            >
+                                <svg class="icon-svg" aria-hidden="true"><use href="#icon-video" xlink:href="#icon-video"></use></svg>
+                                Camera View
+                            </button>
+
+                        </article>
+
+
+                        <!-- CAMERA 2 -->
+
+                        <article
+                            id="camera-card-2"
+                            class="camera-card offline"
+                        >
+
+                            <div class="camera-card-header">
+
+                                <div>
+
+                                    <span class="camera-number">
+                                        CAMERA 02
+                                    </span>
+
+                                    <h4>
+                                        Printing Side
+                                    </h4>
+
+                                </div>
+
+
+                                <span
+                                    id="camera2Status"
+                                    class="camera-status offline"
+                                >
+                                    OFFLINE
+                                </span>
+
+                            </div>
+
+
+                            <div class="camera-jam-summary">
+
+                                <!-- <span>
+                                    Jam Status
+                                </span>
+
+                                <strong
+                                    id="camera2JamStatus"
+                                    class="jam-status disabled"
+                                >
+                                    DISABLED
+                                </strong> -->
+
+                            </div>
+
+
+                            <button
+                                class="secondary-button camera-view-button"
+                                type="button"
+                                onclick="showCameraView('camera_1')"
+                            >
+                                <svg class="icon-svg" aria-hidden="true"><use href="#icon-video" xlink:href="#icon-video"></use></svg>
+                                Camera View
+                            </button>
+
+                        </article>
+
+
+                        <!-- CAMERA 3 -->
+
+                        <article
+                            id="camera-card-3"
+                            class="camera-card offline"
+                        >
+
+                            <div class="camera-card-header">
+
+                                <div>
+
+                                    <span class="camera-number">
+                                        CAMERA 03
+                                    </span>
+
+                                    <h4>
+                                        Packer Discharge Side
+                                    </h4>
+
+                                </div>
+
+
+                                <span
+                                    id="camera3Status"
+                                    class="camera-status offline"
+                                >
+                                    OFFLINE
+                                </span>
+
+                            </div>
+
+
+                            <div class="camera-jam-summary">
+
+                                <!-- <span>
+                                    Jam Status
+                                </span>ss
+
+                                <strong
+                                    id="camera3JamStatus"
+                                    class="jam-status disabled"
+                                >
+                                    DISABLED
+                                </strong> -->
+
+                            </div>
+
+
+                            <button
+                                class="secondary-button camera-view-button"
+                                type="button"
+                                onclick="showCameraView('camera_2')"
+                            >
+                                <svg class="icon-svg" aria-hidden="true"><use href="#icon-video" xlink:href="#icon-video"></use></svg>
+                                Camera View
+                            </button>
+
+                        </article>
+
+
+                        <!-- CAMERA 4 -->
+
+                        <article
+                            id="camera-card-4"
+                            class="camera-card offline"
+                        >
+
+                            <div class="camera-card-header">
+
+                                <div>
+
+                                    <span class="camera-number">
+                                        CAMERA 04
+                                    </span>
+
+                                    <h4>
+                                        Camera 4
+                                    </h4>
+
+                                </div>
+
+
+                                <span
+                                    id="camera4Status"
+                                    class="camera-status offline"
+                                >
+                                    OFFLINE
+                                </span>
+
+                            </div>
+
+
+                            <div class="camera-jam-summary">
+
+                                <!-- <span>
+                                    Jam Status
+                                </span>
+
+                                <strong
+                                    id="camera4JamStatus"
+                                    class="jam-status disabled"
+                                >
+                                    DISABLED
+                                </strong> -->
+
+                            </div>
+
+
+                            <button
+                                class="secondary-button camera-view-button"
+                                type="button"
+                                onclick="showCameraView('camera_3')"
+                            >
+                                <svg class="icon-svg" aria-hidden="true"><use href="#icon-video" xlink:href="#icon-video"></use></svg>
+                                Camera View
+                            </button>
+
+                        </article>
+
+
+                    </div>
+
+                </section>
+
+
+
+
+                <!-- ==================================================
+                     PRODUCTION STATISTICS (Last N Hours)
+                     ================================================== -->
+                <section class="section-container">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h3>
+                                Production Statistics
+                            </h3>
+
+                            <p>
+                                Bag count and print detection over time (column chart)
+                            </p>
+
+                        </div>
+
+
+                        <div id="productionTrendRangeButtons" class="time-range-buttons">
+
+                            <button class="time-range-button" data-hours="1" type="button">1 HR</button>
+                            <button class="time-range-button" data-hours="4" type="button">4 HR</button>
+                            <button class="time-range-button active" data-hours="8" type="button">8 HR</button>
+                            <button class="time-range-button" data-hours="16" type="button">16 HR</button>
+                            <button class="time-range-button" data-hours="24" type="button">24 HR</button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-container">
+
+                        <canvas id="productionChart"></canvas>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): Production Trend + Print Inspection charts
+                     ============================================================ -->
+                <!--
+                ((  CHARTS  ))
+
+                <section class="analytics-grid">
+
+
+                    <article class="chart-card">
+
+                        <div class="chart-header">
+
+                            <div>
+
+                                <h3>
+                                    Production Trend
+                                </h3>
+
+                                <p>
+                                    Live cumulative bag count
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="chart-container">
+
+                            <canvas id="productionChart"></canvas>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="chart-card">
+
+                        <div class="chart-header">
+
+                            <div>
+
+                                <h3>
+                                    Print Inspection
+                                </h3>
+
+                                <p>
+                                    Printed vs not printed
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="chart-container donut-container">
+
+                            <canvas id="printChart"></canvas>
+
+                        </div>
+
+                    </article>
+
+
+                </section>
+                -->
+
+
+            </section>
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): empty shell of old "Live Monitor" + "Production" page wrappers (content moved into Dashboard tab above)
+                     ============================================================ -->
+                <!--
+            ((  ==================================================
+                 PAGE 2
+                 LIVE MONITOR
+                 ==================================================  ))
+
+            <section
+                id="page-live-monitor"
+                class="dashboard-page"
+            >
+
+
+
+
+            </section>
+
+
+            ((  ==================================================
+                 PAGE 3
+                 PRODUCTION
+                 ==================================================  ))
+
+            <section
+                id="page-production"
+                class="dashboard-page"
+            >
+
+
+
+
+
+
+            </section>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Analytics" tab/page
+                     ============================================================ -->
+                <!--
+            ((  ==================================================
+                 PAGE 4
+                 ANALYTICS
+                 ==================================================  ))
+
+            <section
+                id="page-analytics"
+                class="dashboard-page"
+            >
+
+
+                <section class="filter-section">
+
+
+                    <div class="filter-header">
+
+                        <div>
+
+                            <h3>
+                                Analytics Filters
+                            </h3>
+
+                            <p>
+                                Analyze historical production events
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="analytics-filter-grid">
+
+
+                        <div class="filter-group">
+
+                            <label for="analyticsCamera">
+                                Camera
+                            </label>
+
+                            <select id="analyticsCamera">
+
+                                <option value="all">
+                                    All Cameras
+                                </option>
+
+                                <option value="Camera 1">
+                                    Camera 1
+                                </option>
+
+                                <option value="Camera 2">
+                                    Camera 2
+                                </option>
+
+                                <option value="Camera 3">
+                                    Camera 3
+                                </option>
+
+                                <option value="Camera 4">
+                                    Camera 4
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="filter-group">
+
+                            <label for="analyticsStart">
+                                Start
+                            </label>
+
+                            <input
+                                id="analyticsStart"
+                                type="datetime-local"
+                            >
+
+                        </div>
+
+
+                        <div class="filter-group">
+
+                            <label for="analyticsEnd">
+                                End
+                            </label>
+
+                            <input
+                                id="analyticsEnd"
+                                type="datetime-local"
+                            >
+
+                        </div>
+
+
+                        <div class="filter-action">
+
+                            <button
+                                id="applyAnalytics"
+                                class="primary-button full-button"
+                                type="button"
+                            >
+
+                                <svg class="icon-svg" aria-hidden="true"><use href="#icon-bar-chart" xlink:href="#icon-bar-chart"></use></svg>
+
+                                Analyze
+
+                            </button>
+
+                        </div>
+
+
+                    </div>
+
+                </section>
+
+
+                <section class="analytics-summary-grid">
+
+
+                    <article class="analytics-summary-card">
+
+                        <span>
+                            Total Events
+                        </span>
+
+                        <strong id="analyticsTotalEvents">
+                            0
+                        </strong>
+
+                    </article>
+
+
+                    <article class="analytics-summary-card">
+
+                        <span>
+                            Printed
+                        </span>
+
+                        <strong id="analyticsPrinted">
+                            0
+                        </strong>
+
+                    </article>
+
+
+                    <article class="analytics-summary-card">
+
+                        <span>
+                            Missing
+                        </span>
+
+                        <strong id="analyticsMissing">
+                            0
+                        </strong>
+
+                    </article>
+
+
+                    <article class="analytics-summary-card">
+
+                        <span>
+                            Print Quality
+                        </span>
+
+                        <strong id="analyticsQuality">
+                            0.0%
+                        </strong>
+
+                    </article>
+
+
+                </section>
+
+
+                <section class="analytics-grid">
+
+
+                    <article class="chart-card">
+
+                        <div class="chart-header">
+
+                            <div>
+
+                                <h3>
+                                    Hourly Production
+                                </h3>
+
+                                <p>
+                                    Production events by hour
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="chart-container">
+
+                            <canvas id="analyticsHourlyChart"></canvas>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="chart-card">
+
+                        <div class="chart-header">
+
+                            <div>
+
+                                <h3>
+                                    Camera Comparison
+                                </h3>
+
+                                <p>
+                                    Event contribution by camera
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="chart-container">
+
+                            <canvas id="analyticsCameraChart"></canvas>
+
+                        </div>
+
+                    </article>
+
+
+                </section>
+
+
+                <section class="analytics-grid">
+
+
+                    <article class="chart-card">
+
+                        <div class="chart-header">
+
+                            <div>
+
+                                <h3>
+                                    Print Inspection Analytics
+                                </h3>
+
+                                <p>
+                                    Printed and missing events
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="chart-container">
+
+                            <canvas id="analyticsPrintChart"></canvas>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="chart-card">
+
+                        <div class="chart-header">
+
+                            <div>
+
+                                <h3>
+                                    Shift Production
+                                </h3>
+
+                                <p>
+                                    Shift A / B / C comparison
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="chart-container">
+
+                            <canvas id="analyticsShiftChart"></canvas>
+
+                        </div>
+
+                    </article>
+
+
+                </section>
+
+
+            </section>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Events" tab/page
+                     ============================================================ -->
+                <!--
+            ((  ==================================================
+                 PAGE 5
+                 EVENTS
+                 ==================================================  ))
+
+            <section
+                id="page-events"
+                class="dashboard-page"
+            >
+
+
+                <section class="filter-section">
+
+
+                    <div class="filter-header">
+
+                        <div>
+
+                            <h3>
+                                Event Filters
+                            </h3>
+
+                            <p>
+                                Search real persisted bag events
+                            </p>
+
+                        </div>
+
+
+                        <button
+                            id="resetFilters"
+                            class="reset-button"
+                            type="button"
+                        >
+
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-rotate-left" xlink:href="#icon-rotate-left"></use></svg>
+
+                            Reset
+
+                        </button>
+
+                    </div>
+
+
+                    <div class="filter-grid">
+
+
+                        <div class="filter-group">
+
+                            <label for="cameraFilter">
+                                Camera
+                            </label>
+
+                            <select id="cameraFilter">
+
+                                <option value="all">
+                                    All Cameras
+                                </option>
+
+                                <option value="Camera 1">
+                                    Camera 1
+                                </option>
+
+                                <option value="Camera 2">
+                                    Camera 2
+                                </option>
+
+                                <option value="Camera 3">
+                                    Camera 3
+                                </option>
+
+                                <option value="Camera 4">
+                                    Camera 4
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="filter-group">
+
+                            <label for="printFilter">
+                                Print Status
+                            </label>
+
+                            <select id="printFilter">
+
+                                <option value="all">
+                                    All
+                                </option>
+
+                                <option value="printed">
+                                    Printed
+                                </option>
+
+                                <option value="missing">
+                                    Missing
+                                </option>
+
+                                <option value="disabled">
+                                    Disabled
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="filter-group">
+
+                            <label for="shiftFilter">
+                                Shift
+                            </label>
+
+                            <select id="shiftFilter">
+
+                                <option value="all">
+                                    All Shifts
+                                </option>
+
+                                <option value="shift-a">
+                                    Shift A
+                                </option>
+
+                                <option value="shift-b">
+                                    Shift B
+                                </option>
+
+                                <option value="shift-c">
+                                    Shift C
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="filter-group">
+
+                            <label for="startDate">
+                                Start
+                            </label>
+
+                            <input
+                                id="startDate"
+                                type="datetime-local"
+                            >
+
+                        </div>
+
+
+                        <div class="filter-group">
+
+                            <label for="endDate">
+                                End
+                            </label>
+
+                            <input
+                                id="endDate"
+                                type="datetime-local"
+                            >
+
+                        </div>
+
+
+                        <div class="filter-group">
+
+                            <label for="recordLimit">
+                                Records
+                            </label>
+
+                            <select id="recordLimit">
+
+                                <option value="50">
+                                    50
+                                </option>
+
+                                <option
+                                    value="100"
+                                    selected
+                                >
+                                    100
+                                </option>
+
+                                <option value="250">
+                                    250
+                                </option>
+
+                                <option value="500">
+                                    500
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="filter-action">
+
+                            <button
+                                id="applyFilters"
+                                class="primary-button full-button"
+                                type="button"
+                            >
+
+                                <svg class="icon-svg" aria-hidden="true"><use href="#icon-filter" xlink:href="#icon-filter"></use></svg>
+
+                                Apply
+
+                            </button>
+
+                        </div>
+
+
+                    </div>
+
+                </section>
+
+
+                <section class="section-container">
+
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h3>
+                                Production Events
+                            </h3>
+
+                            <p>
+                                Events loaded from count_events.jsonl
+                            </p>
+
+                        </div>
+
+
+                        <div class="section-badge">
+
+                            <span id="eventRecordCount">
+                                0
+                            </span>
+
+                            EVENTS
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table class="events-table">
+
+                            <thead>
+
+                            <tr>
+
+                                <th>Timestamp</th>
+                                <th>Camera</th>
+                                <th>Count</th>
+                                <th>Printed</th>
+                                <th>Missing</th>
+                                <th>Print Status</th>
+
+                            </tr>
+
+                            </thead>
+
+
+                            <tbody id="eventsTableBody">
+
+                            <tr>
+
+                                <td colspan="6">
+                                    Waiting for events...
+                                </td>
+
+                            </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+
+            </section>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Jam Monitoring" tab/page
+                     ============================================================ -->
+                <!--
+            ((  ==================================================
+                 JAM MONITORING
+                 ==================================================  ))
+
+            <section
+                id="page-jam-monitor"
+                class="dashboard-page"
+            >
+
+                <section class="kpi-grid">
+
+                    <article class="kpi-card">
+                        <div class="kpi-icon green">
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-check-circle" xlink:href="#icon-check-circle"></use></svg>
+                        </div>
+                        <div class="kpi-content">
+                            <span class="kpi-label">Normal Cameras</span>
+                            <strong id="jamNormalCameras" class="kpi-value">0</strong>
+                            <span class="kpi-description">Moving normally</span>
+                        </div>
+                    </article>
+
+                    <article class="kpi-card">
+                        <div class="kpi-icon blue">
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-gauge" xlink:href="#icon-gauge"></use></svg>
+                        </div>
+                        <div class="kpi-content">
+                            <span class="kpi-label">Slow Cameras</span>
+                            <strong id="jamSlowCameras" class="kpi-value">0</strong>
+                            <span class="kpi-description">Low bag movement</span>
+                        </div>
+                    </article>
+
+                    <article class="kpi-card">
+                        <div class="kpi-icon purple">
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-warning" xlink:href="#icon-warning"></use></svg>
+                        </div>
+                        <div class="kpi-content">
+                            <span class="kpi-label">Warnings</span>
+                            <strong id="jamWarningCameras" class="kpi-value">0</strong>
+                            <span class="kpi-description">Prolonged low movement</span>
+                        </div>
+                    </article>
+
+                    <article class="kpi-card">
+                        <div class="kpi-icon red">
+                            <svg class="icon-svg" aria-hidden="true"><use href="#icon-road-barrier" xlink:href="#icon-road-barrier"></use></svg>
+                        </div>
+                        <div class="kpi-content">
+                            <span class="kpi-label">Active Jams</span>
+                            <strong id="jamActiveCount" class="kpi-value">0</strong>
+                            <span class="kpi-description">Confirmed jammed bags</span>
+                        </div>
+                    </article>
+
+                </section>
+
+
+                <section class="section-container">
+
+                    <div class="section-header">
+                        <div>
+                            <h3>Conveyor Jam Monitoring</h3>
+                            <p>
+                                Bag motion monitoring using tracked center-point movement,
+                                Euclidean distance and px/s speed
+                            </p>
+                        </div>
+
+                        <div class="live-indicator">
+                            <span class="live-dot"></span>
+                            LIVE
+                        </div>
+                    </div>
+
+
+                    <div class="jam-camera-grid">
+
+                        <article id="jam-camera-card-1" class="jam-camera-card disabled">
+                            <div class="jam-camera-header">
+                                <div>
+                                    <span class="camera-number">CAMERA 01</span>
+                                    <h4>Camera 1</h4>
+                                </div>
+                                <span id="jamCamera1Status" class="jam-status disabled">DISABLED</span>
+                            </div>
+                            <div class="jam-camera-metrics">
+                                <div><span>Active Jams</span><strong id="jamCamera1Count">0</strong></div>
+                                <div><span>Track IDs</span><strong id="jamCamera1Tracks">--</strong></div>
+                                <div><span>ROI Bags</span><strong id="jamCamera1ConditionCBags">0</strong></div>
+                                <div><span>Condition C</span><strong id="jamCamera1ConditionCStatus" class="condition-c-normal">NORMAL</strong></div>
+                                <div><span>ROI Track IDs</span><strong id="jamCamera1ConditionCTracks">--</strong></div>
+                                <div><span>Detection</span><strong id="jamCamera1Enabled">Disabled</strong></div>
+                            </div>
+                        </article>
+
+                        <article id="jam-camera-card-2" class="jam-camera-card disabled">
+                            <div class="jam-camera-header">
+                                <div>
+                                    <span class="camera-number">CAMERA 02</span>
+                                    <h4>Camera 2</h4>
+                                </div>
+                                <span id="jamCamera2Status" class="jam-status disabled">DISABLED</span>
+                            </div>
+                            <div class="jam-camera-metrics">
+                                <div><span>Active Jams</span><strong id="jamCamera2Count">0</strong></div>
+                                <div><span>Track IDs</span><strong id="jamCamera2Tracks">--</strong></div>
+                                <div><span>ROI Bags</span><strong id="jamCamera2ConditionCBags">0</strong></div>
+                                <div><span>Condition C</span><strong id="jamCamera2ConditionCStatus" class="condition-c-normal">NORMAL</strong></div>
+                                <div><span>ROI Track IDs</span><strong id="jamCamera2ConditionCTracks">--</strong></div>
+                                <div><span>Detection</span><strong id="jamCamera2Enabled">Disabled</strong></div>
+                            </div>
+                        </article>
+
+                        <article id="jam-camera-card-3" class="jam-camera-card disabled">
+                            <div class="jam-camera-header">
+                                <div>
+                                    <span class="camera-number">CAMERA 03</span>
+                                    <h4>Camera 3</h4>
+                                </div>
+                                <span id="jamCamera3Status" class="jam-status disabled">DISABLED</span>
+                            </div>
+                            <div class="jam-camera-metrics">
+                                <div><span>Active Jams</span><strong id="jamCamera3Count">0</strong></div>
+                                <div><span>Track IDs</span><strong id="jamCamera3Tracks">--</strong></div>
+                                <div><span>ROI Bags</span><strong id="jamCamera3ConditionCBags">0</strong></div>
+                                <div><span>Condition C</span><strong id="jamCamera3ConditionCStatus" class="condition-c-normal">NORMAL</strong></div>
+                                <div><span>ROI Track IDs</span><strong id="jamCamera3ConditionCTracks">--</strong></div>
+                                <div><span>Detection</span><strong id="jamCamera3Enabled">Disabled</strong></div>
+                            </div>
+                        </article>
+
+                        <article id="jam-camera-card-4" class="jam-camera-card disabled">
+                            <div class="jam-camera-header">
+                                <div>
+                                    <span class="camera-number">CAMERA 04</span>
+                                    <h4>Camera 4</h4>
+                                </div>
+                                <span id="jamCamera4Status" class="jam-status disabled">DISABLED</span>
+                            </div>
+                            <div class="jam-camera-metrics">
+                                <div><span>Active Jams</span><strong id="jamCamera4Count">0</strong></div>
+                                <div><span>Track IDs</span><strong id="jamCamera4Tracks">--</strong></div>
+                                <div><span>ROI Bags</span><strong id="jamCamera4ConditionCBags">0</strong></div>
+                                <div><span>Condition C</span><strong id="jamCamera4ConditionCStatus" class="condition-c-normal">NORMAL</strong></div>
+                                <div><span>ROI Track IDs</span><strong id="jamCamera4ConditionCTracks">--</strong></div>
+                                <div><span>Detection</span><strong id="jamCamera4Enabled">Disabled</strong></div>
+                            </div>
+                        </article>
+
+                    </div>
+
+                </section>
+
+
+                <section class="section-container">
+
+                    <div class="section-header">
+                        <div>
+                            <h3>Jam Detection Logic</h3>
+                            <p>How FillPac AI classifies conveyor motion</p>
+                        </div>
+                    </div>
+
+                    <div class="jam-logic-flow">
+
+                        <div class="jam-logic-step">
+                            <strong>1. Track Bag</strong>
+                            <span>ByteTrack associates the same bag across frames.</span>
+                        </div>
+
+                        <div class="jam-logic-step">
+                            <strong>2. Measure Movement</strong>
+                            <span>Center (x, y) movement is measured using Euclidean distance.</span>
+                        </div>
+
+                        <div class="jam-logic-step">
+                            <strong>3. Calculate Speed</strong>
+                            <span>Pixel distance divided by elapsed time gives motion in px/s.</span>
+                        </div>
+
+                        <div class="jam-logic-step">
+                            <strong>4. Classify State</strong>
+                            <span>NORMAL â†’ SLOW â†’ WARNING â†’ JAM â†’ RECOVERING.</span>
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </section>
+                -->
+
+
+                <!-- ============================================================
+                     REMOVED (commented out per request): "Cameras" tab/page
+                     ============================================================ -->
+                <!--
+            ((  ==================================================
+                 PAGE 7
+                 CAMERAS
+                 ==================================================  ))
+
+            <section
+                id="page-cameras"
+                class="dashboard-page"
+            >
+
+
+                <section class="section-container">
+
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h3>
+                                Camera Management
+                            </h3>
+
+                            <p>
+                                Runtime state and camera configuration
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="cameraManagementGrid"
+                        class="camera-management-grid"
+                    >
+
+
+                        ((  JS FILLS THESE  ))
+
+
+                        <article class="management-camera-card">
+
+                            <div class="camera-management-icon">
+
+                                <svg class="icon-svg" aria-hidden="true"><use href="#icon-camera" xlink:href="#icon-camera"></use></svg>
+
+                            </div>
+
+                            <div>
+
+                                <h3>
+                                    Loading cameras...
+                                </h3>
+
+                                <p>
+                                    Waiting for backend
+                                </p>
+
+                            </div>
+
+                        </article>
+
+
+                    </div>
+
+
+                </section>
+
+
+            </section>
+                -->
+
+
+            <!-- ==================================================
+                 SYSTEM STATUS PAGE
+                 ================================================== -->
+
+            <section
+                id="page-system-status"
+                class="dashboard-page"
+            >
+
+                <div class="system-status-container">
+
+                    <section class="section-container">
+
+                        <div class="section-header">
+                            <div>
+                                <h3>System Health</h3>
+                                <p>Overall system health summary</p>
+                            </div>
+                        </div>
+
+                        <div class="health-grid">
+
+                            <article class="health-card">
+                                <div class="health-card-header">
+                                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-camera" xlink:href="#icon-camera"></use></svg>
+                                    <h4>Camera System</h4>
+                                </div>
+                                <strong id="cameraStatusIndicator" class="status-indicator">â—</strong>
+                                <p id="cameraStatusDetail">--</p>
+                            </article>
+
+                            <article class="health-card">
+                                <div class="health-card-header">
+                                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-industry" xlink:href="#icon-industry"></use></svg>
+                                    <h4>Packer PLC</h4>
+                                </div>
+                                <strong id="plcStatusIndicator" class="status-indicator">â—</strong>
+                                <p id="plcStatusDetail">--</p>
+                            </article>
+
+                            <article class="health-card">
+                                <div class="health-card-header">
+                                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-gauge" xlink:href="#icon-gauge"></use></svg>
+                                    <h4>PMS PC</h4>
+                                </div>
+                                <strong id="pmsStatusIndicator" class="status-indicator">â—</strong>
+                                <p id="pmsStatusDetail">--</p>
+                            </article>
+
+                            <article class="health-card">
+                                <div class="health-card-header">
+                                    <svg class="icon-svg" aria-hidden="true"><use href="#icon-sync" xlink:href="#icon-sync"></use></svg>
+                                    <h4>DCS</h4>
+                                </div>
+                                <strong id="dcsStatusIndicator" class="status-indicator">â—</strong>
+                                <p id="dcsStatusDetail">--</p>
+                            </article>
+
+                        </div>
+
+                    </section>
+
+
+                    <section class="section-container">
+
+                        <div class="section-header">
+                            <div>
+                                <h3>Packer Running Status</h3>
+                                <p id="packerSelectorSubtitle">Showing: Packer 1</p>
+                            </div>
+
+                            <div id="packerSelectorButtons" class="time-range-buttons">
+
+                                <button class="time-range-button active" data-packer="1" type="button">PACKER 1</button>
+
+                            </div>
+                        </div>
+
+                        <div class="packer-status-card">
+
+                            <div class="status-display">
+                                <span class="status-label">Packer Status</span>
+                                <span id="packerRunningStatus" class="status-value">--</span>
+                            </div>
+
+                            <div class="packer-subsystem-grid">
+
+                                <div class="packer-subsystem-item">
+                                    <span>PLC</span>
+                                    <strong id="packerPlcStatus">--</strong>
+                                </div>
+
+                                <div class="packer-subsystem-item">
+                                    <span>PMS</span>
+                                    <strong id="packerPmsStatus">--</strong>
+                                </div>
+
+                                <div class="packer-subsystem-item">
+                                    <span>DCS</span>
+                                    <strong id="packerDcsStatus">--</strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <section class="section-container">
+
+                        <div class="section-header">
+                            <div>
+                                <h3>Camera Status</h3>
+                                <p>Live status of all configured cameras</p>
+                            </div>
+                        </div>
+
+                        <div id="cameraStatusList" class="status-list">
+                            <p>Waiting for camera data...</p>
+                        </div>
+
+                    </section>
+
+
+                    <!-- ==================================================
+                         REMOVED (per request): Service Health section
+                         ================================================== -->
+                    <!--
+                    <section class="section-container">
+
+                        <div class="section-header">
+                            <div>
+                                <h3>Service Health</h3>
+                                <p>AI inference and data-service status</p>
+                            </div>
+                        </div>
+
+                        <div class="system-health">
+
+                            <div class="health-item">
+                                <span class="health-dot"></span>
+                                <div>
+                                    <span>AI Model</span>
+                                    <strong id="healthModel">Checking...</strong>
+                                </div>
+                            </div>
+
+                            <div class="health-item">
+                                <span class="health-dot"></span>
+                                <div>
+                                    <span>Inference Manager</span>
+                                    <strong id="healthInference">Checking...</strong>
+                                </div>
+                            </div>
+
+                            <div class="health-item">
+                                <span class="health-dot"></span>
+                                <div>
+                                    <span>Elasticsearch</span>
+                                    <strong id="healthElasticsearch">Checking...</strong>
+                                </div>
+                            </div>
+
+                            <div class="health-item">
+                                <span class="health-dot"></span>
+                                <div>
+                                    <span>Socket.IO</span>
+                                    <strong id="socketStatus">Connecting...</strong>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </section>
+                    -->
+
+                </div>
+
+            </section>
+
+
+            <!-- ==================================================
+                 REPORTS PAGE
+                 ================================================== -->
+
+            <section
+                id="page-reports"
+                class="dashboard-page"
+            >
+
+                <div class="reports-container">
+
+                    <section class="section-container">
+
+                        <div class="section-header">
+                            <div>
+                                <h3>Generate Report</h3>
+                                <p>Production and performance reports from stored data</p>
+                            </div>
+                        </div>
+
+                        <div class="report-form">
+
+                            <div class="form-row">
+                                <label for="reportType">Report Type</label>
+                                <select id="reportType" class="form-input">
+                                    <option value="production">Production Report</option>
+                                    <option value="print_detection">Print Detection Report</option>
+                                    <option value="camera_performance">Camera Performance Report</option>
+                                    <option value="system_status">System Status Report</option>
+                                    <option value="exception">Exception / Alert Report</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <label for="reportDate">Date</label>
+                                <input id="reportDate" type="date" class="form-input">
+                            </div>
+
+                            <div class="form-row">
+                                <label for="reportStartTime">Start Time</label>
+                                <input id="reportStartTime" type="time" class="form-input">
+                            </div>
+
+                            <div class="form-row">
+                                <label for="reportEndTime">End Time</label>
+                                <input id="reportEndTime" type="time" class="form-input">
+                            </div>
+
+                            <div class="form-row">
+                                <label for="reportCamera">Camera</label>
+                                <select id="reportCamera" class="form-input">
+                                    <option value="all">All Cameras</option>
+                                    <option value="Camera 1">Camera 1</option>
+                                    <option value="Camera 2">Camera 2</option>
+                                    <option value="Camera 3">Camera 3</option>
+                                    <option value="Camera 4">Camera 4</option>
+                                </select>
+                            </div>
+
+                            <button id="generateReportBtn" class="action-button" type="button">
+                                Generate Report
+                            </button>
+
+                        </div>
+
+                    </section>
+
+
+                    <section class="section-container">
+
+                        <div class="section-header">
+                            <div>
+                                <h3>Recent Reports</h3>
+                            </div>
+                        </div>
+
+                        <div id="recentReportsList" class="reports-list">
+                            <p class="no-reports">No reports generated yet</p>
+                        </div>
+
+                    </section>
+
+                </div>
+
+            </section>
+
+
+<!-- ==================================================
+     ABOUT PAGE
+     ================================================== -->
+
+<section
+    id="page-about"
+    class="dashboard-page"
+>
+
+    <div class="about-container">
+
+        <!-- ABOUT BEUMER GROUP -->
+
+        <section class="section-container about-card">
+
+            <div class="about-card-header">
+                <svg class="icon-svg" aria-hidden="true"><use href="#icon-industry" xlink:href="#icon-industry"></use></svg>
+                <h3>About BEUMER Group</h3>
+            </div>
+
+            <p>
+                BEUMER Group is a leading international provider of conveying
+                and loading systems, palletizing and packaging technology, as
+                well as sorting and distribution systems. With over 6,000
+                employees worldwide, the company develops and manufactures
+                high-quality intralogistics solutions for a wide range of
+                industries.
+            </p>
+
+            <p>
+                Founded in 1935, BEUMER Group has established itself as an
+                innovation leader in the field of intralogistics, offering
+                customized solutions that optimize material flow and increase
+                operational efficiency. The company's portfolio includes
+                bagging machines, palletizing systems, conveyors, and complete
+                system solutions for airports and parcel handling.
+            </p>
+
+            <p>
+                Headquartered in Beckum, Germany, BEUMER Group operates
+                globally with subsidiaries and representatives in more than
+                70 countries, ensuring close proximity to customers and
+                providing comprehensive service and support worldwide.
+            </p>
+
+            <div class="about-card-footer">
+                <svg class="icon-svg" aria-hidden="true"><use href="#icon-check-circle" xlink:href="#icon-check-circle"></use></svg>
+                Trusted partner for intralogistics solutions since 1935
+            </div>
+
+        </section>
+
+
+        <!-- APPLICATION OVERVIEW -->
+
+        <section class="section-container about-card">
+
+            <div class="about-card-header">
+                <svg class="icon-svg" aria-hidden="true"><use href="#icon-list" xlink:href="#icon-list"></use></svg>
+                <h3>Application Overview</h3>
+            </div>
+
+            <p>
+                FillPac Vision Intelligence Platform is a real-time production
+                vision system built for BEUMER Group's FillPac bagging lines.
+                It uses camera-based AI inspection to count bags as they move
+                through the packing process, verify that each bag has been
+                correctly printed, and flag any bags where print is missing.
+            </p>
+
+            <p>
+                The platform continuously monitors up to four production
+                cameras, tracking per-camera bag counts, print quality, and
+                frames-per-second performance, while also watching conveyor
+                motion to detect slowdowns, warnings, and confirmed jams
+                before they impact throughput. Operators can review live
+                camera feeds, production statistics over customizable time
+                ranges, and system health for the PLC, PMS, and DCS
+                integrations â€” all from a single dashboard, with data backed
+                by persisted production events for reporting and analysis.
+            </p>
+
+        </section>
+
+
+        <!-- SOFTWARE INFORMATION -->
+
+        <section class="section-container about-card">
+
+            <div class="about-card-header">
+                <svg class="icon-svg" aria-hidden="true"><use href="#icon-settings" xlink:href="#icon-settings"></use></svg>
+                <h3>Software Information</h3>
+            </div>
+
+            <div class="about-grid">
+
+                <div class="about-item">
+                    <span class="about-label">Version</span>
+                    <span id="aboutVersion" class="about-value-badge badge-blue">BGCNT_01_01_01</span>
+                </div>
+
+                <div class="about-item">
+                    <span class="about-label">Build Date</span>
+                    <span id="aboutBuild" class="about-value-badge badge-grey">--</span>
+                </div>
+
+                <div class="about-item">
+                    <span class="about-label">Backend</span>
+                    <span id="aboutBackend" class="about-value-badge badge-blue">--</span>
+                </div>
+
+                <div class="about-item">
+                    <span class="about-label">AI Model</span>
+                    <span id="aboutAIModel" class="about-value-badge badge-orange">--</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- VERSION UPDATE -->
+
+        <section class="section-container">
+
+            <div class="section-header">
+                <div>
+                    <h3>Version Update</h3>
+                </div>
+            </div>
+
+            <div class="update-card">
+
+                <div class="update-row">
+                    <span>Current Version</span>
+                    <strong id="currentVersion">BGCNT_01_01_01</strong>
+                </div>
+
+                <div class="update-row">
+                    <span>Status</span>
+                    <strong id="updateStatus">--</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</section>
+
+
+
+            <!-- ==================================================
+                 PAGE 8
+                 SETTINGS / MAINTENANCE
+                 Fully data-driven editor for config.yaml, built
+                 from whatever GET /api/settings returns (see
+                 dashboard.js "SETTINGS PAGE" block). Nothing in
+                 this markup hard-codes a parameter name -- the
+                 tabs, groups and fields below are populated
+                 entirely by loadSettings()/renderSettingsTabs()/
+                 renderSettingsActiveTab().
+                 ================================================== -->
+
+            <section
+                id="page-settings"
+                class="dashboard-page"
+            >
+
+                <div class="settings-toolbar">
+
+                    <div class="settings-toolbar-left">
+
+                        <label class="settings-toggle-switch">
+                            <input type="checkbox" id="settingsAdvancedToggle">
+                            <span class="settings-toggle-slider"></span>
+                        </label>
+
+                        <span class="settings-toggle-label">
+                            Show Advanced Settings
+                        </span>
+
+                        <span id="settingsStatusText" class="settings-status-text">
+                            Loading configuration...
+                        </span>
+
+                    </div>
+
+                    <div class="settings-toolbar-right">
+
+                        <button id="settingsTestDbBtn" class="secondary-button" type="button">
+                            Test Database
+                        </button>
+
+                        <button id="settingsValidateBtn" class="secondary-button" type="button">
+                            Validate
+                        </button>
+
+                        <button id="settingsResetBtn" class="reset-button" type="button">
+                            Reset to Last Backup
+                        </button>
+
+                        <button id="settingsSaveBtn" class="primary-button" type="button">
+                            Save Changes
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div id="settingsBanner" class="settings-banner" style="display:none;"></div>
+
+                <div id="settingsTabs" class="settings-tabs"></div>
+
+                <div id="settingsFormRoot" class="settings-form-root">
+
+                    <div class="setting-row">
+                        <span>Status</span>
+                        <strong>Loading configuration...</strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ==================================================
+                 PAGE 9
+                 CREATE USER (admin only)
+                 Posts to POST /api/users, which is gated by
+                 require_admin in server.py.
+                 ================================================== -->
+
+            <section
+                id="page-create-user"
+                class="dashboard-page"
+            >
+
+                <div class="create-user-card">
+
+                    <h3 class="create-user-title">New Dashboard Account</h3>
+
+                    <form id="createUserForm" class="create-user-form" autocomplete="off">
+
+                        <label for="newUsername">Username</label>
+                        <input id="newUsername" name="username" type="text"
+                               required autocomplete="off">
+
+                        <label for="newPassword">Password (min. 8 characters)</label>
+                        <input id="newPassword" name="password" type="password"
+                               minlength="8" required autocomplete="new-password">
+
+                        <label for="newUserRole">Role</label>
+                        <select id="newUserRole" name="role" required>
+                            <option value="operator">Operator</option>
+                            <option value="admin">Admin</option>
+                        </select>
+
+                        <button id="createUserSubmit" class="primary-button" type="submit">
+                            Create User
+                        </button>
+
+                        <p id="createUserMessage" class="create-user-message" role="status"></p>
+
+                    </form>
+
+                </div>
+
+            </section>
+
+
+            <!-- ==================================================
+                 FOOTER
+                 ================================================== -->
+
+            <footer class="dashboard-footer">
+
+
+                <span>
+                    FillPac AI Production Vision System
+                </span>
+
+
+                <span>
+                    BEUMER Group Digitalization & Automation
+                </span>
+
+
+            </footer>
+
+
+        </main>
+
+
+    </div>
+
+
+</div>
+
+
+<!-- ==========================================================
+     CAMERA VIEW MODAL
+     Reuses the existing /live/{camera} stream endpoint.
+     ========================================================== -->
+
+<div id="cameraViewModal" class="camera-view-modal" style="display:none;">
+
+    <div class="camera-view-modal-content">
+
+        <div class="camera-view-modal-header">
+
+            <h3 id="cameraViewTitle">Camera 1</h3>
+
+            <button id="cameraViewClose" class="modal-close-btn" type="button" aria-label="Close">&times;</button>
+
+        </div>
+
+
+        <div class="camera-view-modal-body">
+
+            <div id="cameraViewFeed" class="camera-view-feed">
+
+                <svg class="icon-svg" aria-hidden="true"><use href="#icon-video-slash" xlink:href="#icon-video-slash"></use></svg>
+                <span>Camera Offline</span>
+
+            </div>
+
+        </div>
+
+
+        <div class="camera-view-modal-nav">
+
+            <button id="cameraViewPrev" class="secondary-button" type="button">
+                &lt; Prev
+            </button>
+
+            <span id="cameraViewStatus" class="camera-status offline">OFFLINE</span>
+
+            <button id="cameraViewNext" class="secondary-button" type="button">
+                Next &gt;
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================================
+     SETTINGS CONFIRM-CHANGES MODAL
+     Shown by handleSettingsSaveClick()/openSettingsConfirmModal()
+     before PUT /api/settings actually writes config.yaml, so an
+     admin can review every changed field first. Reuses the same
+     overlay/header/close-button/nav classes as cameraViewModal
+     above so it matches the rest of the dashboard's modal style.
+     ========================================================== -->
+
+<div id="settingsConfirmModal" class="camera-view-modal" style="display:none;">
+
+    <div class="camera-view-modal-content settings-confirm-content">
+
+        <div class="camera-view-modal-header">
+
+            <h3>Confirm Configuration Changes</h3>
+
+            <button id="settingsConfirmClose" class="modal-close-btn" type="button" aria-label="Close">&times;</button>
+
+        </div>
+
+
+        <div style="padding: 16px 18px; overflow-y: auto;">
+
+            <div id="settingsConfirmList" class="settings-confirm-list"></div>
+
+        </div>
+
+
+        <div class="camera-view-modal-nav">
+
+            <button id="settingsConfirmCancel" class="secondary-button" type="button">
+                Cancel
+            </button>
+
+            <button id="settingsConfirmApply" class="primary-button" type="button">
+                Save to config.yaml
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================================
+     LOGIN / AUTH JAVASCRIPT
+     (must load before dashboard.js: it guards page access,
+     redirecting to /login if there is no valid session, before
+     any dashboard data is requested)
+     ========================================================== -->
+
+<script src="js/dashboard_auth_themed.js?v=1"></script>
+
+<!-- ==========================================================
+     DASHBOARD JAVASCRIPT
+     ========================================================== -->
+
+<script src="js/dashboard.js?v=20261028-settings-new-config"></script>
+
+<!-- ==========================================================
+     HEADER / SIDEBAR ALIGNMENT FIXX
+     The header's height is NOT fixed - it grows when the title,
+     subtitle, clock, etc. wrap onto extra lines (long text,
+     narrow viewports, browser zoom, larger system fonts...).
+     The sidebar and main content used to assume a hard-coded
+     74px header height, so whenever the header actually
+     rendered taller than that, the sidebar's top items and the
+     page heading got hidden behind the header.
+
+     This script measures the header's REAL rendered height and
+     writes it into the --header-height CSS variable that the
+     sidebar/main-content already use, keeping everything in
+     sync at any zoom level, font size, or screen width.
+     ========================================================== -->
+
+<script>
+(function () {
+    var header = document.querySelector('.top-header');
+    if (!header) return;
+
+    function syncHeaderHeight() {
+        var height = Math.ceil(header.getBoundingClientRect().height);
+        if (height > 0) {
+            document.documentElement.style.setProperty(
+                '--header-height',
+                height + 'px'
+            );
+        }
+    }
+
+    // Measure immediately, then again once everything (fonts,
+    // images, the customer logo, etc.) has finished loading.
+    syncHeaderHeight();
+    window.addEventListener('load', syncHeaderHeight);
+    window.addEventListener('resize', syncHeaderHeight);
+    window.addEventListener('orientationchange', syncHeaderHeight);
+
+    // Catch any later change in the header's size (browser zoom,
+    // dynamic text such as the clock/date, responsive breakpoints
+    // toggling elements on/off, etc.) without needing a full
+    // page reload.
+    if (window.ResizeObserver) {
+        new ResizeObserver(syncHeaderHeight).observe(header);
+    } else {
+        // Fallback for older browsers without ResizeObserver.
+        setInterval(syncHeaderHeight, 500);
+    }
+})();
+</script>
+
+</body>
+
+</html>

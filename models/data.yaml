@@ -1,0 +1,11 @@
+
+path: C:/Digitalization/FillPac_AI/FillPac_AI/data
+
+train: images/train
+val: images/valid
+test: images/test
+
+nc: 2
+names:
+  0: Bag
+  1: Print

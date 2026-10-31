@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FillPac Vision Intelligence Platform - Login">
+    <title>FillPac Vision Intelligence Platform · Sign In</title>
+    <link rel="stylesheet" href="assets/fonts/fonts.css">
+    <!-- <link rel="icon" type="image/png" href="assets/beumer-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"> -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* BEUMER brand */
+            --brand-blue: #3FC1F0;
+            --brand-blue-deep: #1FA8DD;
+            --navy: #143A5C;
+            --navy-deep: #0E2C47;
+
+            --mist: #F6F8FA;
+            --white: #FFFFFF;
+            --text-dark: #101B2D;
+            --text-secondary: #64748B;
+            --border-light: #E2E8F0;
+
+            --error: #E5484D;
+            --ice-blue: #7FD4F2;
+            --deep-blue-text: #063B57;
+
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        html, body { width: 100%; min-height: 100vh; font-family: var(--font-body); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        /* ================= LAYOUT ================= */
+
+        .login-page { display: flex; min-height: 100vh; }
+
+        /* ---------------- BRAND PANEL ---------------- */
+
+        .brand-panel {
+            position: relative;
+            flex: 1 1 54%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 48px;
+            overflow: hidden;
+            background-color: var(--navy-deep);
+        }
+
+        .brand-panel .bg-photo {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 38%;
+            opacity: 0.85;
+            filter: saturate(1.05) contrast(1.02);
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(200deg, var(--navy-deep) 0%, rgba(14, 44, 71, 0.55) 32%, rgba(14, 44, 71, 0.18) 58%, rgba(14, 44, 71, 0.55) 100%),
+                        linear-gradient(90deg, var(--navy-deep) 0%, rgba(14, 44, 71, 0.35) 40%, rgba(14, 44, 71, 0.08) 100%);
+        }
+
+        .brand-panel > * { position: relative; z-index: 2; }
+
+        .brand-logo img { height: 26px; width: auto; filter: brightness(0) invert(1); }
+
+        .brand-copy { max-width: 460px; margin-top: 120px; }
+
+        .brand-eyebrow {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--brand-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .brand-eyebrow::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--brand-blue);
+            box-shadow: 0 0 0 4px rgba(11, 164, 219, 0.25);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .brand-headline {
+            font-family: var(--font-display);
+            font-size: 62px;
+            font-weight: 800;
+            line-height: 1.05;
+            color: #060F17;
+            margin-bottom: 20px;
+            letter-spacing: -0.015em;
+        }
+
+        .brand-sub {
+            font-size: 19px;
+            font-weight: 700;
+            line-height: 1.55;
+            color: #142735;
+        }
+
+        .brand-stats {
+            display: flex;
+            gap: 32px;
+            margin-top: auto;
+            padding-top: 40px;
+        }
+
+        .brand-stat { display: flex; align-items: center; gap: 9px; font-size: 13px; color: rgba(255, 255, 255, 0.55); }
+        .brand-stat .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-blue); flex-shrink: 0; }
+
+        /* ---------------- FORM PANEL ---------------- */
+
+        .form-panel {
+            flex: 1 1 46%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 56px;
+            background: var(--mist);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 560px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: cardIn 0.6s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+        .mobile-brand {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+        .mobile-brand img { height: 24px; flex-shrink: 0; }
+        .mobile-brand span { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--deep-blue-text); }
+
+        .login-header { margin-bottom: 38px; }
+
+        .login-mark {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .login-mark img { height: 26px; width: auto; flex-shrink: 0; }
+        .login-mark span {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--deep-blue-text);
+            letter-spacing: -0.005em;
+            line-height: 1.25;
+        }
+
+        .login-title {
+            font-family: var(--font-display);
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--deep-blue-text);
+            margin-bottom: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .login-subtitle { font-size: 16.5px; color: var(--text-secondary); }
+
+        .form-group { margin-bottom: 24px; }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 17px 18px;
+            font-size: 16.5px;
+            font-family: var(--font-body);
+            border: 1.5px solid var(--border-light);
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--text-dark);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 3.5px rgba(11, 164, 219, 0.14);
+        }
+
+        input::placeholder { color: #A0AEC0; }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0 30px;
+            font-size: 14.5px;
+        }
+
+        .remember-me { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); cursor: pointer; }
+        .remember-me input { cursor: pointer; accent-color: var(--brand-blue); width: 16px; height: 16px; }
+
+        .login-btn {
+            width: 100%;
+            padding: 17px 24px;
+            font-size: 16.5px;
+            font-weight: 600;
+            font-family: var(--font-body);
+            color: white;
+            background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-deep) 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 58px;
+        }
+
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(11, 164, 219, 0.32);
+        }
+        .login-btn:active:not(:disabled) { transform: translateY(0); }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .spinner {
+            display: none;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: 9px;
+            margin-bottom: 18px;
+            font-size: 13.5px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.25s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .alert.show { display: flex; }
+        .alert-error { background: #FEF2F2; color: #991B1B; border-left: 3px solid var(--error); }
+        .alert-success { background: #F0FDF4; color: #166534; border-left: 3px solid #22C55E; }
+        .alert-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+        /* ================= RESPONSIVE ================= */
+
+        /* ================= RESPONSIVE ================= */
+
+        /* Large desktops / wide monitors */
+        @media (min-width: 1440px) {
+            .brand-panel { padding: 64px 72px; }
+            .brand-copy { max-width: 460px; }
+            .brand-headline { font-size: 68px; }
+            .brand-sub { font-size: 20px; }
+            .form-panel { padding: 64px; }
+            .login-container { max-width: 620px; }
+        }
+
+        /* Laptops */
+        @media (max-width: 1199px) and (min-width: 1025px) {
+            .brand-panel { padding: 44px; }
+            .brand-headline { font-size: 46px; }
+            .brand-copy { max-width: 360px; }
+        }
+
+        /* Small laptops / large tablets landscape — brand panel gets tight, trim it down */
+        @media (max-width: 1024px) and (min-width: 901px) {
+            .brand-panel { padding: 36px; flex: 1 1 48%; }
+            .brand-copy { max-width: 320px; margin-top: 32px; }
+            .brand-headline { font-size: 38px; margin-bottom: 14px; }
+            .brand-sub { font-size: 14.5px; }
+            .brand-stats { gap: 20px; flex-wrap: wrap; row-gap: 10px; }
+            .brand-stat { font-size: 12px; }
+            .form-panel { flex: 1 1 52%; padding: 32px; }
+            .login-container { max-width: 400px; }
+            .login-title { font-size: 30px; }
+        }
+
+        /* Tablets and below — brand panel hides, single-column form */
+        @media (max-width: 900px) {
+            .brand-panel { display: none; }
+            .mobile-brand { display: flex; }
+            .form-panel { flex: 1 1 100%; padding: 48px 40px; }
+            .login-container { max-width: 440px; }
+        }
+
+        /* Tablet portrait */
+        @media (max-width: 768px) {
+            .form-panel { padding: 40px 32px; }
+            .login-title { font-size: 32px; }
+            .login-header { margin-bottom: 32px; }
+        }
+
+        /* Mobile landscape / large phones */
+        @media (max-width: 600px) {
+            .form-panel { padding: 32px 24px; align-items: flex-start; padding-top: 48px; }
+            .login-container { max-width: 100%; }
+            .login-title { font-size: 29px; }
+            .login-subtitle { font-size: 14.5px; }
+            .mobile-brand { margin-bottom: 26px; }
+            .login-header { margin-bottom: 28px; }
+            .form-group { margin-bottom: 18px; }
+            input[type="text"], input[type="password"] { padding: 13px 14px; font-size: 15px; }
+            .login-btn { min-height: 50px; font-size: 15px; }
+        }
+
+        /* Phones */
+        @media (max-width: 480px) {
+            .form-panel { padding: 28px 20px; padding-top: 40px; }
+            .login-title { font-size: 26px; }
+            .login-subtitle { font-size: 14px; }
+            .login-mark img { height: 22px; }
+            .login-mark span { font-size: 13px; }
+            .mobile-brand span { font-size: 12px; }
+            label { font-size: 13px; }
+            .form-options { font-size: 13px; margin: 6px 0 22px; }
+            .login-btn { min-height: 48px; padding: 14px 20px; }
+        }
+
+        /* Small / narrow phones */
+        @media (max-width: 360px) {
+            .form-panel { padding: 22px 16px; padding-top: 32px; }
+            .login-title { font-size: 23px; }
+            .login-mark { gap: 8px; margin-bottom: 22px; }
+            .login-mark img { height: 20px; }
+            .login-mark span { font-size: 12px; }
+            input[type="text"], input[type="password"] { padding: 12px 13px; font-size: 14.5px; }
+            .form-options span { font-size: 12.5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+
+        <!-- BRAND PANEL -->
+        <div class="brand-panel">
+            <img class="bg-photo" src="assets/fillpac-equipment.png" alt="">
+
+            <div class="brand-logo">
+                <img src="assets/beumer-logo-color.png" alt="BEUMER Group">
+            </div>
+
+            <div class="brand-stats">
+                <span class="brand-stat"><span class="dot"></span>Bag counting</span>
+                <span class="brand-stat"><span class="dot"></span>Jam detection</span>
+                <span class="brand-stat"><span class="dot"></span>Print detection</span>
+            </div>
+        </div>
+
+        <!-- FORM PANEL -->
+        <div class="form-panel">
+            <div class="login-container">
+
+                <div class="mobile-brand">
+                    <img src="assets/beumer-icon.png" alt="">
+                    <span>FillPac Vision Intelligence Platform</span>
+                </div>
+
+                <div class="login-header">
+                    <div class="login-mark">
+                        <img src="assets/beumer-icon.png" alt="">
+                        <span>FillPac Vision Intelligence Platform</span>
+                    </div>
+                    <h1 class="login-title">Welcome back</h1>
+                    <p class="login-subtitle">Sign in to your production vision dashboard</p>
+                </div>
+
+                <div id="alertContainer">
+                    <div id="errorAlert" class="alert alert-error">
+                        <span class="alert-dot"></span>
+                        <span id="errorMessage"></span>
+                    </div>
+                    <div id="successAlert" class="alert alert-success">
+                        <span class="alert-dot"></span>
+                        <span id="successMessage"></span>
+                    </div>
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="username" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" id="rememberMe" />
+                            <span>Remember me for 30 days</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="loginBtn" class="login-btn">
+                        <span id="loginBtnText">Sign In</span>
+                        <span class="spinner" id="loginBtnSpinner"></span>
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const LOGIN_CONFIG = {
+            ENDPOINT: '/api/auth/login',
+            VERIFY_ENDPOINT: '/api/auth/verify',
+            DASHBOARD_URL: '/',
+            TOKEN_KEY: 'fillpac_auth_token',
+            USER_KEY: 'fillpac_user',
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        function showAlert(type, message) {
+            document.querySelectorAll('.alert').forEach(a => a.classList.remove('show'));
+            const alertId = type === 'success' ? 'successAlert' : 'errorAlert';
+            const messageId = type === 'success' ? 'successMessage' : 'errorMessage';
+            document.getElementById(messageId).textContent = message;
+            document.getElementById(alertId).classList.add('show');
+        }
+
+        function clearAlerts() {
+            document.querySelectorAll('.alert').forEach(a => a.classList.remove('show'));
+        }
+
+        function storeAuth(data, rememberMe) {
+            const payload = JSON.stringify({ user_id: data.user_id, username: data.username, role: data.role });
+            if (rememberMe) {
+                localStorage.setItem(LOGIN_CONFIG.TOKEN_KEY, data.token);
+                localStorage.setItem(LOGIN_CONFIG.USER_KEY, payload);
+            } else {
+                sessionStorage.setItem(LOGIN_CONFIG.TOKEN_KEY, data.token);
+                sessionStorage.setItem(LOGIN_CONFIG.USER_KEY, payload);
+            }
+        }
+
+        function clearAuth() {
+            localStorage.removeItem(LOGIN_CONFIG.TOKEN_KEY);
+            localStorage.removeItem(LOGIN_CONFIG.USER_KEY);
+            sessionStorage.removeItem(LOGIN_CONFIG.TOKEN_KEY);
+            sessionStorage.removeItem(LOGIN_CONFIG.USER_KEY);
+        }
+
+        async function checkExistingSession() {
+            const token = localStorage.getItem(LOGIN_CONFIG.TOKEN_KEY) || sessionStorage.getItem(LOGIN_CONFIG.TOKEN_KEY);
+            if (!token) return false;
+
+            try {
+                const response = await fetch(LOGIN_CONFIG.VERIFY_ENDPOINT, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    cache: 'no-store',
+                });
+
+                if (response.ok) {
+                    const redirect = urlParams.get('redirect') || LOGIN_CONFIG.DASHBOARD_URL;
+                    window.location.href = redirect;
+                    return true;
+                }
+                clearAuth();
+                return false;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            clearAlerts();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            if (!username || !password) {
+                showAlert('error', 'Please enter both username and password');
+                return;
+            }
+
+            const loginBtn = document.getElementById('loginBtn');
+            const loginBtnText = document.getElementById('loginBtnText');
+            const loginBtnSpinner = document.getElementById('loginBtnSpinner');
+
+            loginBtn.disabled = true;
+            loginBtnText.style.display = 'none';
+            loginBtnSpinner.style.display = 'inline-block';
+
+            try {
+                const response = await fetch(LOGIN_CONFIG.ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showAlert('error', data.detail || 'Login failed. Please check your credentials.');
+                    loginBtn.disabled = false;
+                    loginBtnText.style.display = 'inline';
+                    loginBtnSpinner.style.display = 'none';
+                    return;
+                }
+
+                storeAuth(data, rememberMe);
+                showAlert('success', 'Login successful. Redirecting...');
+
+                setTimeout(() => {
+                    const redirect = urlParams.get('redirect') || LOGIN_CONFIG.DASHBOARD_URL;
+                    window.location.href = redirect;
+                }, 900);
+
+            } catch (error) {
+                showAlert('error', 'An error occurred. Please try again.');
+                loginBtn.disabled = false;
+                loginBtnText.style.display = 'inline';
+                loginBtnSpinner.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('load', async () => {
+            await checkExistingSession();
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>

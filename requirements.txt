@@ -1,0 +1,10 @@
+ultralytics>=8.3.0
+opencv-python>=4.10.0
+numpy>=1.26.0
+PyYAML>=6.0.2
+supervision>=0.23.0
+fastapi>=0.116.0
+uvicorn>=0.35.0
+python-socketio>=5.13.0
+elasticsearch>=8.15.0
+pytest>=8.4.0

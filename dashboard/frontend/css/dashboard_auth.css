@@ -1,0 +1,473 @@
+/**
+ * FillPac AI Dashboard Authentication Styles
+ * Matches the existing dashboard theme (dark teal, card-based layout)
+ * 
+ * Add these styles to your existing dashboard.css or import as separate file
+ */
+
+/* ==========================================================
+   COLOR VARIABLES (Matching Dashboard Theme)
+   ========================================================== */
+
+:root {
+    --fillpac-primary: #003f46;
+    --fillpac-primary-light: #007582;
+    --fillpac-accent: #0066cc;
+    --fillpac-bg-light: #f5f7fa;
+    --fillpac-border: #e2e8f0;
+    --fillpac-text: #1a202c;
+    --fillpac-text-secondary: #718096;
+    --status-online: #48bb78;
+    --status-warning: #ed8936;
+    --status-offline: #f56565;
+}
+
+/* ==========================================================
+   USER MENU - Header Integration
+   ========================================================== */
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 20px;
+    height: 60px;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+
+    /*
+    NOTE: margin-left: auto intentionally removed here.
+    .user-menu is injected inside .header-right, which already
+    packs all of its children (status, uptime, clock,
+    notification bell, user-menu) tightly against the right
+    edge via justify-content: flex-end. An auto left-margin on
+    this element fights that layout, shoving .user-menu all the
+    way to the far edge and leaving a large empty gap between
+    it and the notification bell.
+    */
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.username {
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-role {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-logout {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.btn-logout:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-logout:active {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(0);
+}
+
+/* ==========================================================
+   AUTH STATUS INDICATOR
+   ========================================================== */
+
+.auth-status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: none;
+}
+
+.auth-status-indicator.authenticated {
+    background-color: var(--status-online);
+    box-shadow: 0 0 6px var(--status-online);
+}
+
+.auth-status-indicator.expired {
+    background-color: var(--status-warning);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ==========================================================
+   AUTH ALERT NOTIFICATIONS
+   ========================================================== */
+
+.auth-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 400px;
+    padding: 16px 20px;
+    background: white;
+    border-left: 4px solid;
+    border-radius: 6px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease-out;
+    z-index: 9999;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.auth-alert.error {
+    border-color: var(--status-offline);
+    background: #fff5f5;
+}
+
+.auth-alert.error .alert-icon {
+    color: var(--status-offline);
+}
+
+.auth-alert.warning {
+    border-color: var(--status-warning);
+    background: #fffaf0;
+}
+
+.auth-alert.warning .alert-icon {
+    color: var(--status-warning);
+}
+
+.auth-alert.success {
+    border-color: var(--status-online);
+    background: #f0fdf4;
+}
+
+.auth-alert.success .alert-icon {
+    color: var(--status-online);
+}
+
+.alert-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.alert-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.alert-text {
+    flex: 1;
+}
+
+.alert-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 2px;
+    color: var(--fillpac-text);
+}
+
+.alert-message {
+    font-size: 12px;
+    color: var(--fillpac-text-secondary);
+}
+
+/* ==========================================================
+   SESSION TIMEOUT WARNING
+   ========================================================== */
+
+.session-timeout-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.session-timeout-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.session-timeout-content {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    max-width: 400px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.timeout-icon {
+    font-size: 48px;
+    color: var(--status-warning);
+    margin-bottom: 16px;
+}
+
+.timeout-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--fillpac-text);
+    margin-bottom: 12px;
+}
+
+.timeout-message {
+    font-size: 14px;
+    color: var(--fillpac-text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.timeout-timer {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--status-warning);
+    margin-bottom: 24px;
+    font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.timeout-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-continue-session,
+.btn-logout-now {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-continue-session {
+    background: linear-gradient(135deg, var(--fillpac-primary-light) 0%, var(--fillpac-primary) 100%);
+    color: white;
+}
+
+.btn-continue-session:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(45, 122, 138, 0.3);
+}
+
+.btn-logout-now {
+    background: var(--fillpac-border);
+    color: var(--fillpac-text);
+}
+
+.btn-logout-now:hover {
+    background: #cbd5e0;
+}
+
+/* ==========================================================
+   LOADING SPINNER
+   ========================================================== */
+
+.spinner-border {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================
+   RESPONSIVE DESIGN
+   ========================================================== */
+
+@media (max-width: 768px) {
+    .user-menu {
+        gap: 8px;
+        padding: 0 12px;
+        border-left: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .user-details {
+        display: none;
+    }
+
+    .username {
+        gap: 0;
+    }
+
+    .btn-logout {
+        padding: 4px 8px;
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .btn-logout i {
+        display: none;
+    }
+
+    .auth-alert {
+        max-width: calc(100% - 40px);
+        right: 20px;
+        left: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-menu {
+        gap: 4px;
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .btn-logout {
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+
+    .session-timeout-content {
+        padding: 24px;
+        margin: 20px;
+    }
+
+    .timeout-title {
+        font-size: 18px;
+    }
+
+    .timeout-timer {
+        font-size: 24px;
+    }
+}
+
+/* ==========================================================
+   DARK MODE SUPPORT (Optional)
+   ========================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .auth-alert {
+        background: #2d3748;
+        color: white;
+    }
+
+    .auth-alert.error {
+        background: #742a2a;
+        border-color: var(--status-offline);
+    }
+
+    .alert-title,
+    .alert-message {
+        color: white;
+    }
+}
+
+/* ==========================================================
+   PRINT STYLES
+   ========================================================== */
+
+@media print {
+    .user-menu,
+    .auth-alert,
+    .session-timeout-modal,
+    .btn-logout {
+        display: none !important;
+    }
+}

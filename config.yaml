@@ -1,0 +1,617 @@
+project:
+  name: FillPac AI
+  version: BGCNT_01_01_01
+model:
+  path: models/fillpac_yolo26n_best.pt
+  confidence: 0.2
+  iou: 0.45
+  device: cpu
+  # device: cpu 
+  image_size: 640
+  half: true
+  max_detections: 20
+  min_bbox_area: 800
+  detection_roi:
+    x1: 800
+    y1: 0
+    x2: 1500
+    y2: 1296
+  allowed_classes:
+  - 0
+  - 1
+  bag_confidence: 0.1
+  print_confidence: 0.2
+tracker:
+  type: bytetrack
+  track_high_thresh: 0.1
+  track_low_thresh: 0.05
+  new_track_thresh: 0.1
+  track_buffer: 60
+  match_thresh: 0.85
+  frame_rate: 15
+  minimum_consecutive_frames: 1
+  min_track_age: 1
+  min_bbox_area: 800
+  min_bbox_area_ratio: 0
+  min_track_confidence: 0.1
+  max_jump_distance: 250
+  min_iou_warning: 0.1
+  unstable_frame_threshold: 3
+  history_ttl_frames: 120
+counting:
+  method: center
+  direction: down
+  duplicate_distance: 30
+  duplicate_time: 0.8
+  line_tolerance: 12
+  late_start_margin: 40
+  minimum_cross_distance: 15
+  min_track_frames: 4
+  stale_track_frames: 120
+print_detection:
+  enabled: true
+  confidence: 0.2
+  iou: 0.45
+  iou_threshold: 0
+  min_overlap_ratio: 0.3
+  min_print_area: 80
+  max_print_area: 0
+  min_aspect_ratio: 0
+  max_aspect_ratio: 0
+  max_center_distance: 0
+print_roi_counting:
+  enabled: true
+  min_frames: 2
+  min_confidence: 0.2
+  max_history: 300
+jam_detection:
+  enabled: true
+  roi:
+    x1: 850
+    y1: 0
+    x2: 1430
+    y2: 1296
+  history_seconds: 1
+  min_history_seconds: 0.5
+  stationary_speed_threshold: 4
+  slow_speed_threshold: 9
+  warning_time_seconds: 3
+  jam_time_seconds: 5
+  recovery_time_seconds: 1
+  min_track_age: 4
+  ignore_unstable_tracks: true
+  ignore_motion_jumps: true
+  track_ttl_seconds: 2
+bag_spacing:
+  enabled: true
+  direction: down
+  minimum_safe_gap_mm: 650
+  measurement_margin_mm: 5
+  jam_threshold_mm: 655
+  min_track_age: 4
+  ignore_unstable_tracks: true
+  ignore_motion_jumps: true
+  jam_confirm_frames: 3
+  recovery_confirm_frames: 3
+  roi:
+    x1: 850
+    y1: 0
+    x2: 1430
+    y2: 1296
+  calibration:
+    image_points:
+    - - 960
+      - 0
+    - - 1325
+      - 0
+    - - 1325
+      - 740
+    - - 960
+      - 740
+    world_points_mm:
+    - - 0
+      - 0
+    - - 2540
+      - 0
+    - - 2540
+      - 1550
+    - - 0
+      - 1550
+condition_c:
+  enabled: true
+  roi:
+    x1: 850
+    y1: 0
+    x2: 1430
+    y2: 1296
+  max_allowed_bags: 1
+  min_track_age: 4
+  ignore_unstable_tracks: true
+  ignore_motion_jumps: true
+  jam_confirm_frames: 3
+  recovery_confirm_frames: 3
+  save_roi_image: false
+  save_full_frame: false
+  save_distances: true
+  capture_cooldown_seconds: 1
+  image_directory: logs/roi_images
+production:
+  count_enabled: true
+  include_bags_in_total: true
+  include_prints_in_total: true
+cameras:
+- id: 1
+  name: Camera 1
+  enabled: false
+  ai_enabled: true
+  production:
+    count_enabled: true
+    include_bags_in_total: true
+    include_prints_in_total: true
+  # mode: rtsp
+  # source: rtsp://BEUMER:Beumer!123@192.168.1.242:554/live/1/1
+  # mode: video
+  # source: data/videos/ld1.mp4
+  buffer_size: 1
+  realtime_playback: true
+  frame_skip: 1
+  inference_timeout: 15
+  dashboard_publish_interval: 0.5
+  model:
+    path: models/fillpac_yolo26n_best.pt
+    confidence: 0.2
+    iou: 0.45
+    device: cuda:0
+    image_size: 640
+    half: true
+    max_detections: 20
+    min_bbox_area: 800
+    detection_roi:
+      x1: 800
+      y1: 0
+      x2: 1500
+      y2: 1296
+    allowed_classes:
+    - 0
+    - 1
+    bag_confidence: 0.1
+    print_confidence: 0.2
+  counting:
+    method: center
+    direction: down
+    duplicate_distance: 50
+    duplicate_time: 1.5
+    line_tolerance: 12
+    late_start_margin: 40
+    minimum_cross_distance: 0
+    min_track_frames: 4
+    stale_track_frames: 120
+  entry_roi_counting:
+    enabled: true
+    roi:
+      x1: 960
+      y1: 0
+      x2: 1325
+      y2: 330
+    min_track_frames: 4
+    duplicate_distance: 50
+    max_history: 300
+  print_detection:
+    enabled: true
+    confidence: 0.2
+    iou: 0.45
+    iou_threshold: 0
+    min_overlap_ratio: 0.3
+    min_print_area: 80
+    max_print_area: 0
+    min_aspect_ratio: 0
+    max_aspect_ratio: 0
+    max_center_distance: 0
+  print_roi_counting:
+    enabled: true
+    roi:
+      x1: 960
+      y1: 0
+      x2: 1325
+      y2: 330
+    min_frames: 2
+    min_confidence: 0.2
+    max_history: 300
+  jam_detection:
+    enabled: true
+    roi:
+      x1: 850
+      y1: 0
+      x2: 1430
+      y2: 1296
+    history_seconds: 1
+    min_history_seconds: 0.5
+    stationary_speed_threshold: 4
+    slow_speed_threshold: 9
+    warning_time_seconds: 3
+    jam_time_seconds: 5
+    recovery_time_seconds: 1
+    min_track_age: 4
+    ignore_unstable_tracks: true
+    ignore_motion_jumps: true
+    track_ttl_seconds: 2
+  roi:
+    x1: 880
+    y1: 900
+    x2: 1420
+    y2: 900
+    entry_roi:
+      enabled: true
+      x1: 960
+      y1: 0
+      x2: 1325
+      y2: 330
+      entry_direction: down
+- id: 2
+  name: Camera 2
+  enabled: true
+  ai_enabled: true
+  production:
+    count_enabled: true
+    include_bags_in_total: false
+    include_prints_in_total: true
+  mode: video
+  source: data/videos/C1.mp4 
+  # mode: rtsp
+  # source: rtsp://admin:Beumer!123@192.168.1.241:554/live/1/1
+  buffer_size: 1
+  inference_timeout: 15
+  dashboard_publish_interval: 0.5
+  model:
+    path: models/fillpac_yolo26n_best.pt
+    confidence: 0.2
+    iou: 0.45
+    device: cpu
+    image_size: 640
+    half: true
+    max_detections: 20
+    min_bbox_area: 800
+    detection_roi:
+      x1: 0
+      y1: 144
+      x2: 2304
+      y2: 1296
+    allowed_classes:
+    - 0
+    - 1
+    bag_confidence: 0.35
+    print_confidence: 0.2
+  counting:
+    method: center
+    direction: both
+    duplicate_distance: 30
+    duplicate_time: 0.8
+    line_tolerance: 12
+    late_start_margin: 40
+    minimum_cross_distance: 0
+    min_track_frames: 4
+    stale_track_frames: 120
+  entry_roi_counting:
+    enabled: true
+    roi:
+      x1: 491
+      y1: 216
+      x2: 1152
+      y2: 1080
+    min_track_frames: 4
+    duplicate_distance: 50
+    max_history: 300
+  print_detection:
+    enabled: true
+    confidence: 0.2
+    iou: 0.45
+    iou_threshold: 0
+    min_overlap_ratio: 0.3
+    min_print_area: 80
+    max_print_area: 0
+    min_aspect_ratio: 0
+    max_aspect_ratio: 0
+    max_center_distance: 0
+  print_roi_counting:
+    enabled: true
+    roi:
+      x1: 491
+      y1: 216
+      x2: 1152
+      y2: 1080
+    min_frames: 2
+    min_confidence: 0.2
+    max_history: 300
+    missing_grace_frames: 10
+    missing_max_frames: 450
+  jam_detection:
+    enabled: true
+    roi:
+      x1: 491
+      y1: 216
+      x2: 1813
+      y2: 1080
+    history_seconds: 1
+    min_history_seconds: 0.5
+    stationary_speed_threshold: 4
+    slow_speed_threshold: 9
+    warning_time_seconds: 3
+    jam_time_seconds: 5
+    recovery_time_seconds: 1
+    min_track_age: 4
+    ignore_unstable_tracks: true
+    ignore_motion_jumps: true
+    track_ttl_seconds: 2
+  bag_spacing:
+    roi:
+      x1: 324
+      y1: 162
+      x2: 2194
+      y2: 1220
+  condition_c:
+    roi:
+      x1: 324
+      y1: 162
+      x2: 2194
+      y2: 1220
+  roi:
+    x1: 1152
+    y1: 216
+    x2: 1152
+    y2: 1080
+    entry_roi:
+      enabled: true
+      x1: 491
+      y1: 216
+      x2: 1152
+      y2: 1080
+      entry_direction: left
+- id: 3
+  name: Camera 3
+  enabled: false
+  ai_enabled: true
+  production:
+    count_enabled: true
+    include_bags_in_total: true
+    include_prints_in_total: true
+  mode: rtsp
+  source: rtsp://admin:Beumer@123@192.168.1.240:554/live/1/1
+  buffer_size: 1
+  inference_timeout: 15
+  dashboard_publish_interval: 0.5
+  model:
+    path: models/fillpac_yolo26n_best.pt
+    confidence: 0.2
+    iou: 0.45
+    device: cuda:0
+    image_size: 640
+    half: true
+    max_detections: 50
+    min_bbox_area: 800
+    detection_roi:
+      x1: 0
+      y1: 80
+      x2: 1280
+      y2: 720
+    allowed_classes:
+    - 0
+    - 1
+    bag_confidence: 0.35
+    print_confidence: 0.2
+  counting:
+    method: center
+    direction: both
+    duplicate_distance: 50
+    duplicate_time: 1.5
+    line_tolerance: 12
+    late_start_margin: 40
+    minimum_cross_distance: 0
+    min_track_frames: 4
+    stale_track_frames: 120
+  entry_roi_counting:
+    enabled: true
+    roi:
+      x1: 273
+      y1: 120
+      x2: 640
+      y2: 600
+    min_track_frames: 4
+    duplicate_distance: 50
+    max_history: 300
+  print_detection:
+    enabled: true
+    confidence: 0.2
+    iou: 0.45
+    iou_threshold: 0
+    min_overlap_ratio: 0.3
+    min_print_area: 80
+    max_print_area: 0
+    min_aspect_ratio: 0
+    max_aspect_ratio: 0
+    max_center_distance: 0
+  print_roi_counting:
+    enabled: true
+    roi:
+      x1: 273
+      y1: 120
+      x2: 640
+      y2: 600
+    min_frames: 2
+    min_confidence: 0.2
+    max_history: 300
+  jam_detection:
+    enabled: true
+    roi:
+      x1: 273
+      y1: 120
+      x2: 1007
+      y2: 600
+    history_seconds: 1
+    min_history_seconds: 0.5
+    stationary_speed_threshold: 4
+    slow_speed_threshold: 9
+    warning_time_seconds: 3
+    jam_time_seconds: 5
+    recovery_time_seconds: 1
+    min_track_age: 4
+    ignore_unstable_tracks: true
+    ignore_motion_jumps: true
+    track_ttl_seconds: 2
+  roi:
+    x1: 640
+    y1: 120
+    x2: 640
+    y2: 600
+    entry_roi:
+      enabled: true
+      x1: 273
+      y1: 120
+      x2: 640
+      y2: 600
+      entry_direction: left
+- id: 4
+  name: Camera 4
+  enabled: false
+  ai_enabled: true
+  production:
+    count_enabled: true
+    include_bags_in_total: true
+    include_prints_in_total: true
+  mode: video
+  source: data/videos/camera1_testttt.mp4
+  buffer_size: 1
+  inference_timeout: 15
+  dashboard_publish_interval: 0.5
+  model:
+    path: models/fillpac_yolo26n_best.pt
+    confidence: 0.2
+    iou: 0.45
+    device: cuda:0
+    image_size: 640
+    half: true
+    max_detections: 20
+    min_bbox_area: 800
+    detection_roi:
+      x1: 0
+      y1: 80
+      x2: 1280
+      y2: 720
+    allowed_classes:
+    - 0
+    - 1
+    bag_confidence: 0.35
+    print_confidence: 0.2
+  counting:
+    method: center
+    direction: both
+    duplicate_distance: 30
+    duplicate_time: 0.8
+    line_tolerance: 12
+    late_start_margin: 40
+    minimum_cross_distance: 0
+    min_track_frames: 4
+    stale_track_frames: 120
+  entry_roi_counting:
+    enabled: true
+    roi:
+      x1: 273
+      y1: 120
+      x2: 640
+      y2: 600
+    min_track_frames: 4
+    duplicate_distance: 50
+    max_history: 300
+  print_detection:
+    enabled: true
+    confidence: 0.2
+    iou: 0.45
+    iou_threshold: 0
+    min_overlap_ratio: 0.3
+    min_print_area: 80
+    max_print_area: 0
+    min_aspect_ratio: 0
+    max_aspect_ratio: 0
+    max_center_distance: 0
+  print_roi_counting:
+    enabled: true
+    roi:
+      x1: 273
+      y1: 120
+      x2: 640
+      y2: 600
+    min_frames: 2
+    min_confidence: 0.2
+    max_history: 300
+  jam_detection:
+    enabled: true
+    roi:
+      x1: 273
+      y1: 120
+      x2: 1007
+      y2: 600
+    history_seconds: 1
+    min_history_seconds: 0.5
+    stationary_speed_threshold: 4
+    slow_speed_threshold: 9
+    warning_time_seconds: 3
+    jam_time_seconds: 5
+    recovery_time_seconds: 1
+    min_track_age: 4
+    ignore_unstable_tracks: true
+    ignore_motion_jumps: true
+    track_ttl_seconds: 2
+  roi:
+    x1: 640
+    y1: 120
+    x2: 640
+    y2: 600
+display:
+  show_window: false
+  show_boxes: true
+  show_labels: true
+  show_center: true
+  show_roi: true
+  show_fps: true
+  show_count: true
+  show_jam_roi: true
+  show_jam_status: true
+  show_jam_speed: true
+  show_stationary_time: true
+  show_spacing_roi: true
+  show_spacing_lines: true
+  show_spacing_status: true
+  show_spacing_jam_boxes: true
+output:
+  save_video: false
+  save_images: false
+  output_path: data/output
+elasticsearch:
+  enabled: false
+  host: localhost
+  port: 9200
+  indices:
+    count: fillpac-count
+    print: fillpac-print
+    camera: fillpac-camera
+dashboard:
+  enabled: true
+  default_count_type: roi
+  host: 0.0.0.0
+  port: 8001
+  publish_interval: 0.5
+  stale_timeout: 10
+logging:
+  level: INFO
+  file: logs/application.log
+  count_flush_immediately: true
+database:
+database:
+  enabled: true
+  server: MSI\SQLEXPRESS
+  name: FillPacAI
+  driver: ODBC Driver 18 for SQL Server
+  authentication:
+    trusted_connection: true
+  encrypt: false
+  trust_server_certificate: true
+  connect_timeout: 10
